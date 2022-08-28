@@ -33,9 +33,6 @@ ntptime.settime()
 # Disconnect from WiFi
 wifi.disconnect(sta_if)
 
-# Turn off on-board led
-led.turn_off()
-
 # Initialize Screens
 tm = tm1637.TM1637(clk=Pin(config.TM_CLK_PIN), dio=Pin(config.TM_DIO_PIN))
 ssd = ssd1306.SSD1306_SPI(128, 64, SPI(2), Pin(16), Pin(17), Pin(5))
@@ -48,16 +45,32 @@ ssd.show()
 # ssd.blit(fb, 8, 0, 0)
 # ssd.show()
 
-while True:
-    # Convert to localtime
-    localtime = time.localtime(time.time() + (int(config.UTC_OFFSET) * 60 * 60))
 
-    # Fix brightness
-    if config.LOW_BRIGHTNESS_HOUR_FROM <= localtime[3] <= config.LOW_BRIGHTNESS_HOUR_TO:
-        tm.brightness(config.TM_LOW_BRIGHTNESS_SETTING)
-        ssd.contrast(config.SSD_LOW_BRIGHTNESS_SETTING)
-    else:
-        tm.brightness(config.TM_HIGH_BRIGHTNESS_SETTING)
-        ssd.contrast(config.SSD_HIGH_BRIGHTNESS_SETTING)
+
+localtime = time.localtime()
+
+while True:
+    # Fix the time according to the given offset
+    new_localtime = time.localtime(time.time() + (int(config.UTC_OFFSET) * 60 * 60))
+    
+    # Compare if hour or minutes changed
+    if localtime[3] != new_localtime[3] or localtime[4] != new_localtime[4]:
         
-    tm.numbers(localtime[3], localtime[4])
+        localtime = new_localtime
+        
+        # Fix brightness
+        if config.LOW_BRIGHTNESS_HOUR_FROM <= localtime[3] <= config.LOW_BRIGHTNESS_HOUR_TO:
+            tm.brightness(config.TM_LOW_BRIGHTNESS_SETTING)
+            ssd.contrast(config.SSD_LOW_BRIGHTNESS_SETTING)
+        else:
+            tm.brightness(config.TM_HIGH_BRIGHTNESS_SETTING)
+            ssd.contrast(config.SSD_HIGH_BRIGHTNESS_SETTING)
+        
+        # Output hr:min
+        tm.numbers(localtime[3], localtime[4])
+        
+        # Turn off on-board led (tm and onboard led share the same pin so it turns on)
+        led.turn_off()
+    
+    else:
+        pass
