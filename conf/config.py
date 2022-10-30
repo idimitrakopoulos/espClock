@@ -2,9 +2,6 @@
 WIFI_SSID = "ssid"
 WIFI_PASSWORD = "pass"
 
-# UTC Offset
-UTC_OFFSET = "+3"
-
 # TM1637 Module
 TM_CLK_PIN = 2
 TM_DIO_PIN = 4
