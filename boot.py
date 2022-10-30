@@ -35,25 +35,12 @@ def calcOffsetSeconds():
         sec = 7200 # EET:  UTC+2H
     return(sec)
 
-
 log.info("espClock Project (C) 2022 -- Iason Dimitrakopoulos")
 
-# Connect to WiFi
-log.debug("Obtaining network connection ....")
-sta_if = wifi.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
-log.info("Connection: " + sta_if.ifconfig()[0])
-
-# Get current UTC time from NTP
-log.debug("Sync with NTP server ....")
-ntptime.settime()
-
-# Disconnect from WiFi
-log.debug("WiFi interface sleep ....")
-wifi.disconnect(sta_if)
-
-# Initialize Screens
+# Initialize Screen
 log.debug("Initializing tm1637 screen ....")
 tm = tm1637.TM1637(clk=Pin(config.TM_CLK_PIN), dio=Pin(config.TM_DIO_PIN))
+tm.show('INIT')
 # ssd = ssd1306.SSD1306_SPI(128, 64, SPI(2), Pin(16), Pin(17), Pin(5))
 # ssd.text('espClock (C)2022', 0, 0, 2)
 # ssd.show()
@@ -64,7 +51,25 @@ tm = tm1637.TM1637(clk=Pin(config.TM_CLK_PIN), dio=Pin(config.TM_DIO_PIN))
 # ssd.blit(fb, 8, 0, 0)
 # ssd.show()
 
+# Connect to WiFi
+log.debug("Obtaining network connection ....")
+sta_if = wifi.connect(config.WIFI_SSID, config.WIFI_PASSWORD)
+log.info("Connection: " + sta_if.ifconfig()[0])
+
+# Get current UTC time from NTP
+log.debug("Sync with NTP server ....")
+tm.show('NTP ')
+ntptime.settime()
+
+
+# Disconnect from WiFi
+log.debug("WiFi interface sleep ....")
+wifi.disconnect(sta_if)
+
+
+# Start
 log.info("Starting main clock loop ...")
+tm.show('RDY ')
 
 localtime = time.localtime()
 
