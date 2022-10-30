@@ -1,6 +1,7 @@
 from conf import config
 from lib import ulogger
 from lib import wifi
+from lib import timezone
 from hw import espled as led
 from hw import tm1637
 from machine import Pin, SPI
@@ -21,26 +22,12 @@ log = ulogger.Logger(
     )
 )
 
-# Calculate time based on the current location 
-def calcOffsetSeconds():
-    year = time.localtime()[0]       #get current year
-    HHMarch   = time.mktime((year,3 ,(31-(int(5*year/4+4))%7),1,0,0,0,0,0)) #Time of March change to EEST
-    HHOctober = time.mktime((year,10,(31-(int(5*year/4+1))%7),1,0,0,0,0,0)) #Time of October change to EET
-    now=time.time()
-    if now < HHMarch :               # we are before last sunday of march
-        sec = 7200 # EET:  UTC+2H
-    elif now < HHOctober :           # we are before last sunday of october
-        sec = 10800 # EEST: UTC+3H
-    else:                            # we are after last sunday of october
-        sec = 7200 # EET:  UTC+2H
-    return(sec)
-
 log.info("espClock Project (C) 2022 -- Iason Dimitrakopoulos")
 
 # Initialize Screen
 log.debug("Initializing tm1637 screen ....")
 tm = tm1637.TM1637(clk=Pin(config.TM_CLK_PIN), dio=Pin(config.TM_DIO_PIN))
-tm.show('INIT')
+tm.show('BOOT')
 # ssd = ssd1306.SSD1306_SPI(128, 64, SPI(2), Pin(16), Pin(17), Pin(5))
 # ssd.text('espClock (C)2022', 0, 0, 2)
 # ssd.show()
@@ -75,7 +62,7 @@ localtime = time.localtime()
 
 while True:
     # Fix the time according to the given offset
-    new_localtime = time.localtime(time.time() + calcOffsetSeconds())
+    new_localtime = time.localtime(time.time() + timezone.calcOffsetSeconds())
     
     # Compare if hour or minutes changed
     if localtime[3] != new_localtime[3] or localtime[4] != new_localtime[4]:
